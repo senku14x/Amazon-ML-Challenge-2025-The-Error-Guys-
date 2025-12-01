@@ -1,6 +1,6 @@
 # **Amazon ML Challenge 2025: Smart Product Pricing Solution**
 
-**Team:** The Error Guys 
+**Team:** The Error Guys (Placed Top 150 out of 21000 Teams)
 
 **Member :** Ayush Sharma, Swapnil Saha, Souhardyo Dasgupta, Vishesh Gupta 
 
