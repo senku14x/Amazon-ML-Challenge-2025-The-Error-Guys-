@@ -129,19 +129,6 @@ python src/predict.py --model_dir models/ --output submission.csv
 
 ---
 
-## Citation
-```bibtex
-@misc{gupta2025amazonml,
-  author = {Gupta, Vishesh and Team},
-  title = {Smart Product Pricing via Multimodal Deep Learning},
-  year = {2025},
-  publisher = {Amazon ML Challenge},
-  url = {https://github.com/visheshgupta/amazon-ml-challenge}
-}
-```
-
----
-
 ## Team
 
 **The Error Guys**  
@@ -152,8 +139,9 @@ Vishesh Gupta • Ayush Sharma • Swapnil Saha • Souhardyo Dasgupta
 ## Contact
 
 **Vishesh Gupta**  
-Electrical Engineering  • Jadavpur University  
-Email: visheshguptaw14x@gmail.com.com • LinkedIn: [linkedin.com/in/yourprofile](https://www.linkedin.com/in/vishesh-gupta-33927932b/) • 
+Electrical Engineering • Jadavpur University  
+Email: visheshguptaw14x@gmail.com • LinkedIn: [linkedin/vishesh](linkedin.com/in/vishesh-gupta-33927932b/) • 
 
 ---
 
+**If this helped your research, please star the repo!**
