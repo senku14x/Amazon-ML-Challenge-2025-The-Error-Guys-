@@ -106,16 +106,17 @@ def train_lightgbm_cv(
         ds_tr = lgb.Dataset(X_tr, label=y_tr)
         ds_val = lgb.Dataset(X_val, label=y_val, reference=ds_tr)
         
+        # Early stopping: 100 rounds
+        early_stop_callback = lgb.early_stopping(stopping_rounds=100, verbose=True)
+        log_callback = lgb.log_evaluation(period=250)
+        
         model = lgb.train(
             params,
             ds_tr,
-            num_boost_round=5000,
+            num_boost_round=10000,
             valid_sets=[ds_tr, ds_val],
             valid_names=['train', 'val'],
-            callbacks=[
-                lgb.early_stopping(200),
-                lgb.log_evaluation(250)
-            ]
+            callbacks=[early_stop_callback, log_callback]
         )
         
         # Predictions
@@ -192,12 +193,13 @@ def train_xgboost_cv(
         dval = xgb.DMatrix(X_val, label=y_val)
         dtest = xgb.DMatrix(X_test)
         
+        # Early stopping: 100 rounds
         model = xgb.train(
             params,
             dtrain,
-            num_boost_round=5000,
+            num_boost_round=10000,
             evals=[(dtrain, 'train'), (dval, 'val')],
-            early_stopping_rounds=200,
+            early_stopping_rounds=100,
             verbose_eval=250
         )
         
@@ -253,7 +255,8 @@ def train_catboost_cv(
             'l2_leaf_reg': 30.0,
             'bootstrap_type': 'Bernoulli',
             'subsample': 0.7,
-            'iterations': 3000,
+            'iterations': 10000,
+            'early_stopping_rounds': 100,
             'random_seed': seed,
             'verbose': 250
         }
