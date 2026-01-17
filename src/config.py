@@ -82,7 +82,8 @@ class ModelConfig:
                 'l2_leaf_reg': 30.0,
                 'bootstrap_type': 'Bernoulli',
                 'subsample': 0.7,
-                'iterations': 3000,
+                'iterations': 10000,
+                'early_stopping_rounds': 100,
                 'random_seed': self.seed,
                 'verbose': 250
             }
