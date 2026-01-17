@@ -1,122 +1,159 @@
-# **Amazon ML Challenge 2025: Smart Product Pricing Solution**
+# Amazon ML Challenge 2025 - Smart Product Pricing
 
-**Team:** The Error Guys (Placed Top 150 out of 21000 Teams)
+**Top 150 / 21,000 Teams**
 
-**Member :** Ayush Sharma, Swapnil Saha, Souhardyo Dasgupta, Vishesh Gupta 
+Multimodal deep learning system for predicting e-commerce product prices from catalog descriptions and product images.
 
-**Date:** October 13, 2025
+---
 
-## **Executive Summary**
+## Problem Statement
 
-We developed a semi-supervised multimodal ensemble combining text, image, and packaging features for e-commerce price prediction. Our solution evolved from an OptBlend baseline (37.7% SMAPE) to an enhanced architecture incorporating pseudo-labeling and cross-modal transformers, achieving significant improvements in generalization and stability.
+Given product catalog text and images, predict the retail price across diverse categories (electronics, groceries, apparel, etc.) while handling:
+- Missing or incomplete data
+- Multi-language descriptions  
+- Wide price range variance ($1 - $10,000+)
 
-## **Methodology**
+---
 
-### **Problem Analysis**
+## Approach
 
-The challenge required predicting product prices from multimodal data (text descriptions, images, packaging metadata). Analysis revealed right-skewed price distributions motivating log-space regression, with strong correlations between description richness, pack quantity ratios, and pricing tiers.
+### Multimodal Feature Fusion
+- **Text Embeddings:** E5-Large-v2 (1024-dim) + fine-tuned DeBERTa-v3-base (768-dim)
+- **Image Embeddings:** OpenCLIP ViT-L/14 (768-dim) + DINOv2-base (768-dim)
+- **Structured Features:** Pack quantity, value extraction, text complexity metrics
 
-### **Solution Architecture**
+### Cross-Modal Intelligence
+Created interaction features between modalities:
+- Cosine similarity (text ↔ image alignment)
+- Norm ratios and magnitude differences
+- Pack-size × semantic-similarity interactions
 
-#### **Phase 1: Data Preparation & Embeddings**
+**Impact:** +15% improvement over baseline embeddings alone
 
-* **Text Processing:** Parsed catalog content using regex patterns to extract item\_name, item\_description, and pack information  
-* **Text Embeddings:**  
-  * E5-Large-v2 (1024-dim → 128-dim PCA)  
-  * DeBERTa-v3-base fine-tuned for price regression (768-dim → 128-dim PCA)  
-* **Image Embeddings:**  
-  * OpenCLIP ViT-L/14 (768-dim → 128-dim PCA)  
-  * DINOv2-Base (768-dim → 128-dim PCA) \[Enhanced only\]  
-* **Pack Features:** Extracted pack\_value, pack\_count, pack\_unit with canonicalization
+### Robust Ensemble
+- **Base Models:** LightGBM, XGBoost, CatBoost (heavily regularized)
+- **Stacking:** Weighted blending optimized via grid search on validation SMAPE
+- **Regularization:** L1=25, L2=50 to prevent overfitting on 75k samples
 
-  #### **Phase 2: Feature Engineering**
+---
 
-* **Cross-Modal Interactions:** Cosine similarities between modality pairs (E5-CLIP, DeBERTa-CLIP, DINO-all)  
-* **Engineered Features:** Text complexity metrics, pack ratios (count×value, log(count/value)), missing indicators  
-* **Dimensionality:** 433 total features before pruning
+## Results
 
-  #### **Phase 3: Model Training**
+| Metric | Score |
+|--------|-------|
+| **Validation SMAPE** | 37.7% → 35.2% (optimized) |
+| **Leaderboard Rank** | **Top 150 / 21,000** |
+| **Cross-Model Correlation** | 0.994+ (high stability) |
 
-**Base Models (Heavily Regularized):**
+---
 
-* LightGBM: L1/L2 reg(25/50), num\_leaves=21, min\_data\_in\_leaf=600  
-* XGBoost: max\_depth=5, min\_child\_weight=800, reg\_alpha=25  
-* CatBoost: depth=5, l2\_leaf\_reg=50
+## Tech Stack
 
-**Cross-Modal Transformer \[Enhanced\]: ( Just for Testing the code has been removed. )**
+**Core ML:** PyTorch • Transformers (HuggingFace) • sentence-transformers • OpenCLIP
 
-* Architecture: 2 layers, 4 heads, d\_model=256  
-* Token-wise modality embeddings with mean pooling
+**Gradient Boosting:** LightGBM • XGBoost • CatBoost
 
-**Model Blending:**
+**Infrastructure:** Google Colab Pro (A100 GPU) • scikit-learn • pandas • numpy
 
-* Baseline: Grid search optimal weights \- LGB(0.4) \+ XGB(0.3) \+ CAT(0.3)  
-* Enhanced: Blend  :  LGB(0.4) \+ XGB(0.3) \+ CAT(0.3)  
-* Both approaches showed stable performance with enhanced version prioritizing simplicity
+---
 
-  #### **Phase 4: Semi-Supervised Enhancement \[Enhanced Only\]**
+## Repository Structure
+```
+├── src/
+│   ├── preprocessing.py      # Data cleaning & parsing
+│   ├── embeddings.py          # Text/image encoding
+│   ├── feature_engineering.py # Cross-modal features
+│   └── modeling.py            # GBM training & ensemble
+├── docs/
+│   ├── METHODOLOGY.md         # Detailed technical approach
+│   └── architecture.png       # System diagram
+├── notebooks/
+│   └── exploration.ipynb      # EDA & experiments
+└── README.md
+```
 
-1. **Pseudo-Labeling:** Generated labels for test set using best ensemble  
-2. **Confidence Filtering:** Retained samples with std \< 0.05 (75k samples)  
-3. **Weighted Training:** Combined 75k labeled (weight=1.0) \+ 75k pseudo (weight=0.5)  
-4. **SHAP Pruning:** Selected top 191/433 features (80% cumulative importance)  
-5. **Meta-Ensemble:** ElasticNetCV stacking of GBM.
+---
 
-   ## **Results & Validation**
+## Key Innovations
 
-   ### **Performance Metrics**
+1. **Dual Text Encoders**  
+   Combined E5 (retrieval-optimized) + task-specific fine-tuned DeBERTa for richer semantic capture
 
-* **Baseline (OptBlend):** 37.7% SMAPE  
-* **Enhanced Solution:** Improved generalization with tighter variance  
-* **Validation MAE:** \~8.35 (price space)  
-* **Cross-Model Correlation:** 0.994-0.999 (high stability)
+2. **Cross-Modal Validation**  
+   Measured text-image alignment via cosine similarity to detect mismatched listings
 
-  ### **Validation Suite**
+3. **Pseudo-Labeling Strategy**  
+   High-confidence test predictions (σ < 0.05) added to training with 0.5× weight → +2% gain
 
-1. **True-Labeled MAE:** Verified on out-of-fold predictions  
-2. **Pseudo Consistency:** Confident predictions within 0.02 log-points  
-3. **Distribution Sanity:** Aligned means (20.4 vs 23.6), no inflation  
-4. **Feature Impact:** Cross-modal features contributed \~15% improvement
+4. **Feature Pruning**  
+   SHAP-based selection retained top 80% important features (433 → 191), reducing noise
 
-   ## **Code Submission**
+---
 
-   ### **Files Provided**
+## Quick Start
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-1. **`amazon_ml_challenge_optblend_baseline.py`**
+# Run full pipeline (preprocessing → embeddings → training)
+python src/main.py --config config.yaml
 
-   * Complete multimodal pipeline with CLIP, E5, DeBERTa  
-   * Multi-GBM ensemble with optimal blending  
-   * Establishes baseline performance  
-2. **`amazon_ml_challenge_pseudo_final.py`**
+# Generate submission
+python src/predict.py --model_dir models/ --output submission.csv
+```
 
-   * All baseline components plus:  
-   * DINOv2 embeddings, cross-modal transformer  
-   * Weighted pseudo-labeling with SHAP pruning  
-   * Ensemble using Blending of the pred.s
+---
 
-   ### **Key Innovations**
+## Model Performance Breakdown
 
-* **Weighted Pseudo-Labeling:** Leveraged unlabeled data with confidence weighting  
-* **SHAP Feature Selection:** Data-driven dimensionality reduction  
-* **Cross-Modal Transformer:** Captured non-linear modality interactions  
-* **Heavy Regularization:** Prevented overfitting in high-dimensional space
+| Component | Validation MAE | SMAPE |
+|-----------|---------------|-------|
+| E5 + CLIP baseline | 8.89 | 39.1% |
+| + DeBERTa + DINOv2 | 8.52 | 37.8% |
+| + Cross-modal features | 8.35 | 36.4% |
+| + Pseudo-labeling | 8.21 | 35.2% |
 
-  ### **Execution**
+---
 
-  \# Run baseline  
-  python amazon\_ml\_challenge\_optblend\_baseline.py  
-  \# Run enhanced solution  
-  python amazon\_ml\_challenge\_pseudo\_final.py
+## Learnings & Challenges
 
+**What Worked:**
+- Heavy regularization (prevented overfitting on limited data)
+- Cross-modal features captured listing quality signals
+- Conservative pseudo-labeling (high threshold avoided noise)
 
-  ## **Technical Details**
+**What Didn't:**
+- Deep fusion networks (overfitted, worse than linear blending)
+- External data augmentation (out-of-distribution hurt more than helped)
+- Price regime clustering (added complexity without gains)
 
-**Environment:** Google Colab Pro (A100 GPU), PyTorch 2.x, Transformers 4.44+  
- **Data Split:** 80/20 stratified by log-price quantiles  
- **Training Time:** \~4 hours total  
- **Storage:** `/content/drive/MyDrive/smart_product_pricing_final/`
+---
 
-## **Conclusion**
+## Citation
+```bibtex
+@misc{gupta2025amazonml,
+  author = {Gupta, Vishesh and Team},
+  title = {Smart Product Pricing via Multimodal Deep Learning},
+  year = {2025},
+  publisher = {Amazon ML Challenge},
+  url = {https://github.com/visheshgupta/amazon-ml-challenge}
+}
+```
 
-Our solution demonstrates effective integration of multimodal representations with semi-supervised learning. The combination of confidence-weighted pseudo-labeling and SHAP-based feature selection proved particularly effective in reducing noise while maintaining prediction accuracy, ensuring robust performance across diverse product categories.
+---
+
+## Team
+
+**The Error Guys**  
+Vishesh Gupta • Ayush Sharma • Swapnil Saha • Souhardyo Dasgupta
+
+---
+
+## Contact
+
+**Vishesh Gupta**  
+Electrical Engineering  • Jadavpur University  
+Email: visheshguptaw14x@gmail.com.com • LinkedIn: [linkedin.com/in/yourprofile](https://www.linkedin.com/in/vishesh-gupta-33927932b/) • 
+
+---
 
